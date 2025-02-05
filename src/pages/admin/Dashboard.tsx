@@ -12,6 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Document {
   id: string;
@@ -27,6 +33,8 @@ interface Document {
 const AdminDashboard = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const { toast } = useToast();
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     category: "",
     division: "",
@@ -50,6 +58,11 @@ const AdminDashboard = () => {
       title: "Document Uploaded",
       description: "The document has been successfully uploaded.",
     });
+  };
+
+  const handleView = (doc: Document) => {
+    setSelectedDoc(doc);
+    setIsViewModalOpen(true);
   };
 
   return (
@@ -140,7 +153,7 @@ const AdminDashboard = () => {
                     {doc.effectiveFrom} - {doc.effectiveTo}
                   </TableCell>
                   <TableCell>
-                    <Button variant="link">View</Button>
+                    <Button variant="link" onClick={() => handleView(doc)}>View</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -148,6 +161,40 @@ const AdminDashboard = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedDoc?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <h4 className="font-semibold">Category</h4>
+              <p>{selectedDoc?.category}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Division</h4>
+              <p>{selectedDoc?.division}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Description</h4>
+              <p>{selectedDoc?.description}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Effective Period</h4>
+              <p>{selectedDoc?.effectiveFrom} - {selectedDoc?.effectiveTo}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold">Document Preview</h4>
+              <iframe 
+                src={selectedDoc?.fileUrl} 
+                className="w-full h-[500px] border rounded"
+                title="PDF Preview"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
