@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface Document {
@@ -47,11 +48,13 @@ const AdminDashboard = () => {
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual file upload
+    // Create a URL for the uploaded file
+    const fileUrl = uploadForm.file ? URL.createObjectURL(uploadForm.file) : "#";
+    
     const newDoc: Document = {
       id: Math.random().toString(),
       ...uploadForm,
-      fileUrl: "#",
+      fileUrl,
     };
     setDocuments([...documents, newDoc]);
     toast({
@@ -163,11 +166,12 @@ const AdminDashboard = () => {
       </Card>
 
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>{selectedDoc?.name}</DialogTitle>
+            <DialogDescription>Document Details</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
+          <div className="grid gap-4 overflow-y-auto">
             <div>
               <h4 className="font-semibold">Category</h4>
               <p>{selectedDoc?.category}</p>
@@ -182,15 +186,28 @@ const AdminDashboard = () => {
             </div>
             <div>
               <h4 className="font-semibold">Effective Period</h4>
-              <p>{selectedDoc?.effectiveFrom} - {selectedDoc?.effectiveTo}</p>
+              <p>
+                {selectedDoc?.effectiveFrom} - {selectedDoc?.effectiveTo}
+              </p>
             </div>
-            <div>
-              <h4 className="font-semibold">Document Preview</h4>
-              <iframe 
-                src={selectedDoc?.fileUrl} 
-                className="w-full h-[500px] border rounded"
-                title="PDF Preview"
-              />
+            <div className="mt-4">
+              <h4 className="font-semibold mb-2">Document Preview</h4>
+              {selectedDoc?.fileUrl && selectedDoc.fileUrl !== "#" ? (
+                <object
+                  data={selectedDoc.fileUrl}
+                  type="application/pdf"
+                  className="w-full h-[600px] border rounded"
+                >
+                  <p>
+                    It appears your browser doesn't support embedded PDFs.
+                    <a href={selectedDoc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline ml-1">
+                      Click here to view the PDF
+                    </a>
+                  </p>
+                </object>
+              ) : (
+                <p>No PDF preview available</p>
+              )}
             </div>
           </div>
         </DialogContent>
