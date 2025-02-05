@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +35,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState({
     category: "",
     division: "",
@@ -45,10 +45,10 @@ const AdminDashboard = () => {
     effectiveTo: "",
     file: null as File | null,
   });
+  const [editForm, setEditForm] = useState<Document | null>(null);
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    // Create a URL for the uploaded file
     const fileUrl = uploadForm.file ? URL.createObjectURL(uploadForm.file) : "#";
     
     const newDoc: Document = {
@@ -66,6 +66,35 @@ const AdminDashboard = () => {
   const handleView = (doc: Document) => {
     setSelectedDoc(doc);
     setIsViewModalOpen(true);
+  };
+
+  const handleEdit = (doc: Document) => {
+    setEditForm(doc);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (docId: string) => {
+    const updatedDocs = documents.filter((doc) => doc.id !== docId);
+    setDocuments(updatedDocs);
+    toast({
+      title: "Document Deleted",
+      description: "The document has been successfully deleted.",
+    });
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm) return;
+
+    const updatedDocs = documents.map((doc) =>
+      doc.id === editForm.id ? editForm : doc
+    );
+    setDocuments(updatedDocs);
+    setIsEditModalOpen(false);
+    toast({
+      title: "Document Updated",
+      description: "The document has been successfully updated.",
+    });
   };
 
   return (
@@ -155,8 +184,20 @@ const AdminDashboard = () => {
                   <TableCell>
                     {doc.effectiveFrom} - {doc.effectiveTo}
                   </TableCell>
-                  <TableCell>
-                    <Button variant="link" onClick={() => handleView(doc)}>View</Button>
+                  <TableCell className="space-x-2">
+                    <Button variant="link" onClick={() => handleView(doc)}>
+                      View
+                    </Button>
+                    <Button variant="link" onClick={() => handleEdit(doc)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="link"
+                      className="text-red-500"
+                      onClick={() => handleDelete(doc.id)}
+                    >
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -165,6 +206,7 @@ const AdminDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* View Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
@@ -210,6 +252,65 @@ const AdminDashboard = () => {
               )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Edit Document</DialogTitle>
+            <DialogDescription>Update document details</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                placeholder="Category"
+                value={editForm?.category || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, category: e.target.value } : null)
+                }
+              />
+              <Input
+                placeholder="Division"
+                value={editForm?.division || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, division: e.target.value } : null)
+                }
+              />
+              <Input
+                placeholder="Document Name"
+                value={editForm?.name || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, name: e.target.value } : null)
+                }
+              />
+              <Input
+                placeholder="Description"
+                value={editForm?.description || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, description: e.target.value } : null)
+                }
+              />
+              <Input
+                type="date"
+                placeholder="Effective From"
+                value={editForm?.effectiveFrom || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, effectiveFrom: e.target.value } : null)
+                }
+              />
+              <Input
+                type="date"
+                placeholder="Effective To"
+                value={editForm?.effectiveTo || ""}
+                onChange={(e) =>
+                  setEditForm(editForm ? { ...editForm, effectiveTo: e.target.value } : null)
+                }
+              />
+            </div>
+            <Button type="submit" className="w-full">Save Changes</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
